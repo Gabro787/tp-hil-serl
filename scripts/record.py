@@ -13,7 +13,7 @@ import argparse
 import shutil
 
 from common import (add_common_args, check_display, control_changes, demos_repo, demos_root,
-                    load_reference, make_config, require_group, run_module)
+                    detect_device, load_reference, make_config, require_group, run_module)
 
 
 def summary(group):
@@ -65,6 +65,7 @@ def main():
     cfg = make_config(load_reference("env_config.json"), {
         **control_changes(args.keyboard),
         "mode": "record",
+        "device": detect_device(),
         "dataset.repo_id": demos_repo(group),
         "dataset.root": str(root),
         "dataset.task": control_changes(args.keyboard)["env.task"],

@@ -84,6 +84,8 @@ wandb login                    # paste your W&B API key once
 
 Using the keyboard instead of a gamepad? Add `--keyboard` to every `teleop.py`, `record.py` and `train.py` command.
 
+`check_setup.py` auto-detects your compute device (NVIDIA CUDA, Apple MPS, or CPU) and every run is configured for it automatically — the commands below are the same on Linux, macOS and Windows. On MPS or CPU, training (Parts 3-5) is slower than the schedule below assumes; that's expected, not a mistake. Write down your device (`cuda` / `mps` / `cpu`, plus GPU model if any) at the top of `answers.md` — Part 6 compares runs across the whole class, and device is a confound you'll need to account for.
+
 **Controls.** The robot is driven in end-effector space: you move the gripper in x, y, z and open/close it.
 
 | Action | Gamepad | Keyboard |
@@ -261,7 +263,7 @@ This computes, for every run in the class, the time until the rolling-mean rewar
 
 **Report questions**
 
-- **Q6.1** Across the whole class, how much faster do HIL runs reach a stable success rate than noHIL runs? How large is the spread between groups, and what might explain it?
+- **Q6.1** Across the whole class, how much faster do HIL runs reach a stable success rate than noHIL runs? How large is the spread between groups, and what might explain it (operator skill, intervention strategy, random seed, and — if groups used different hardware — compute device)?
 - **Q6.2** Where does HIL-SERL sit in the taxonomy of the Background section? Compare it with HG-DAgger: what does each assume about the teacher, and what does each learn from the human's input?
 - **Q6.3** The simulator gave you a perfect reward for free. On a real robot, where would the reward come from, and what new failure modes would that introduce?
 - **Q6.4** List three ways the human could make learning *worse* (think about intervention timing, consistency and duration).

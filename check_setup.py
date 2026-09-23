@@ -8,9 +8,13 @@ in the session (students). It exits with a non-zero code if a blocking check fai
 
 import json
 import os
+import platform
 import socket
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "scripts"))
+from common import detect_device  # noqa: E402
 
 EXPECTED_LEROBOT = "0.6.1"
 REPO = Path(__file__).resolve().parent
@@ -52,30 +56,47 @@ check("LeRobot", c_lerobot)
 check("gym_hil", c_gymhil)
 
 
-# 2. GPU ------------------------------------------------------------------------------
+# 2. Compute device --------------------------------------------------------------------
 def c_gpu():
     import torch
-    if torch.cuda.is_available():
+    device = detect_device()
+    if device == "cuda":
         report("PASS", "GPU", f"{torch.cuda.get_device_name(0)} (torch {torch.__version__})")
+    elif device == "mps":
+        report("PASS", "GPU", f"Apple Silicon (MPS, torch {torch.__version__}). "
+               "Training works but is not as fast as an NVIDIA GPU; torch.compile is disabled on this device.")
     else:
-        report("FAIL", "GPU", f"CUDA not available (torch {torch.__version__}). "
-               "Check `nvidia-smi`; if it lists a GPU, reinstall a CUDA build of PyTorch.")
+        report("WARN", "GPU", f"No CUDA or MPS device found, training will run on CPU (torch {torch.__version__}). "
+               "This is much slower: expect Parts 3-5 to take longer than the suggested duration. "
+               "If you expected a GPU here, check `nvidia-smi` and reinstall a CUDA build of PyTorch.")
 
 
 check("GPU", c_gpu)
 
 # 3. Display and session ----------------------------------------------------------
-display = os.environ.get("DISPLAY")
-session = os.environ.get("XDG_SESSION_TYPE", "unknown")
-if not display:
-    report("FAIL", "Display", "DISPLAY is not set. Run this from a terminal inside the desktop session "
-           "(not over SSH, not on Colab/JupyterHub).")
+system = platform.system()
+is_wsl = system == "Linux" and "microsoft" in platform.uname().release.lower()
+if is_wsl:
+    report("WARN", "Display", "Running under WSL: needs WSLg (Windows 11, on by default) or an X server "
+           "(e.g. VcXsrv) on the Windows side for the simulator window to appear.")
+elif system == "Linux":
+    display = os.environ.get("DISPLAY")
+    session = os.environ.get("XDG_SESSION_TYPE", "unknown")
+    if not display:
+        report("FAIL", "Display", "DISPLAY is not set. Run this from a terminal inside the desktop session "
+               "(not over SSH, not on Colab/JupyterHub; use a remote desktop such as NoMachine/VNC/X2Go instead).")
+    else:
+        report("PASS", "Display", f"DISPLAY={display}")
+    if session == "wayland":
+        report("FAIL", "Session type", "Wayland: keyboard controls will not work. Log out and choose an X11 / Xorg session.")
+    else:
+        report("PASS", "Session type", session)
 else:
-    report("PASS", "Display", f"DISPLAY={display}")
-if session == "wayland":
-    report("FAIL", "Session type", "Wayland: keyboard controls will not work. Log out and choose an X11 / Xorg session.")
-else:
-    report("PASS", "Session type", session)
+    report("PASS", "Display", f"{system}: renders through the native windowing system, no DISPLAY needed.")
+    if system == "Darwin":
+        report("WARN", "Input capture", "macOS may ask you to grant your terminal app Accessibility / Input "
+               "Monitoring permission the first time (System Settings > Privacy & Security) for the keyboard "
+               "controls to be captured.")
 
 
 # 4. Simulation rendering ------------------------------------------------------------

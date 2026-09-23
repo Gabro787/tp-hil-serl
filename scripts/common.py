@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import platform
 import socket
 import subprocess
 import sys
@@ -83,6 +84,21 @@ def make_config(base: dict, changes: dict, name: str) -> Path:
     return path
 
 
+def detect_device() -> str:
+    """Best training/inference device on this machine: NVIDIA CUDA > Apple MPS > CPU."""
+    import torch
+    if torch.cuda.is_available():
+        return "cuda"
+    if getattr(torch.backends, "mps", None) is not None and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
+def torch_compile_ok(device: str) -> bool:
+    """torch.compile is only well-tested for this TP on CUDA; keep it off on mps/cpu."""
+    return device == "cuda"
+
+
 def control_changes(keyboard: bool) -> dict:
     if keyboard:
         return {"env.task": "PandaPickCubeKeyboard-v0", "env.processor.control_mode": "keyboard"}
@@ -98,16 +114,24 @@ def demos_root(group: str) -> Path:
 
 
 def train_changes(group: str, tag: str, keyboard: bool, experiment: str | None = None) -> dict:
+    device = detect_device()
     changes = {
         **control_changes(keyboard),
         "wandb.enable": True,
         "wandb.project": WANDB_PROJECT,
         "dataset.repo_id": REFERENCE_DEMOS,
         "policy.actor_learner_config.policy_parameters_push_frequency": 4,
+        "policy.device": device,
+        "algorithm.use_torch_compile": torch_compile_ok(device),
         "resume": False,
         "output_dir": str(OUTPUTS / tag),
         "job_name": tag,
     }
+    if device != "cuda":
+        print(f"NOTE: no CUDA GPU detected, training on '{device}'. This will be much slower than "
+              "the GPU lab machines: expect Parts 3-5 to need longer than the suggested duration to "
+              "show the same learning curves. Record your device in answers.md so Part 6 class "
+              "comparisons can account for it.")
     if experiment == "C":
         if not demos_root(group).exists():
             sys.exit(f"Experiment C needs your Part 2 demos in {demos_root(group)}: run scripts/record.py first.")
@@ -136,8 +160,20 @@ def port_in_use(port: int = LEARNER_PORT) -> bool:
 
 
 def check_display():
-    if not os.environ.get("DISPLAY"):
-        sys.exit("No DISPLAY: run this from a terminal inside the desktop session of the lab machine "
-                 "(not over SSH, not on Colab).")
-    if os.environ.get("XDG_SESSION_TYPE") == "wayland":
-        print("WARNING: Wayland session, the keyboard controls will not work. Log out and pick an X11 session.")
+    """The simulator needs a real screen. DISPLAY/Wayland only mean anything on Linux (X11);
+    macOS and Windows render through their own native windowing and don't set DISPLAY at all."""
+    system = platform.system()
+    is_wsl = system == "Linux" and "microsoft" in platform.uname().release.lower()
+    if is_wsl:
+        # WSLg (Windows 11, on by default) or a separate X server handles the window; there is no
+        # cheap way to check either is actually working, so just point at the requirement.
+        print("NOTE: running inside WSL. This needs WSLg (Windows 11, on by default) or an X server "
+              "(e.g. VcXsrv) running on the Windows side for the simulator window to appear.")
+    elif system == "Linux":
+        if not os.environ.get("DISPLAY"):
+            sys.exit("No DISPLAY: run this from a terminal inside the desktop session of the lab machine "
+                     "(not over SSH, not on Colab). Over SSH, use a remote-desktop session (NoMachine, VNC, "
+                     "X2Go) instead.")
+        if os.environ.get("XDG_SESSION_TYPE") == "wayland":
+            print("WARNING: Wayland session, the keyboard controls will not work. Log out and pick an X11 session.")
+    # macOS and native Windows render through their own windowing system; nothing to check.

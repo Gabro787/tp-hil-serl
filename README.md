@@ -18,30 +18,37 @@ Built on [LeRobot](https://github.com/huggingface/lerobot)'s HIL-SERL implementa
 
 ## Requirements
 
-Everything runs **on the machine the student is sitting at**: the simulator opens a 3D window and reads the local keyboard or gamepad.
+Everything runs **on the machine the student is sitting at**: the simulator opens a 3D window and reads the local keyboard or gamepad. Linux, macOS and Windows are all supported; `check_setup.py` auto-detects the best available compute device (CUDA, Apple MPS, or CPU) and configures every run for it, so the same commands work everywhere.
 
-- Linux with a desktop session using **X11** (not Wayland: keyboard input is ignored under Wayland)
-- An **NVIDIA GPU** with a recent driver (`nvidia-smi` works)
-- [Miniconda](https://docs.anaconda.com/miniconda/) and git
-- A gamepad per group (recommended; Logitech F310 or Xbox-type) or the keyboard
+- **Linux**: any desktop session using **X11** (not Wayland: keyboard input is ignored under Wayland). An NVIDIA GPU (`nvidia-smi` works) gives the fastest training; without one, training falls back to CPU and is much slower but still works.
+- **macOS**: Apple Silicon uses the GPU via MPS automatically; Intel Macs fall back to CPU. The first time you teleoperate, macOS may ask you to grant your terminal app Accessibility / Input Monitoring permission (System Settings > Privacy & Security) so it can capture the keyboard.
+- **Windows**: two options —
+  - **WSL2 + NVIDIA GPU** (fastest, closest to a Linux lab machine): install a recent NVIDIA driver on the *Windows* side, `wsl --install` (Windows 11 includes WSLg, so the simulator window appears natively, no extra X server needed), then run everything from `install.sh` onward *inside* the WSL2 Ubuntu shell.
+  - **Native Windows, CPU-only**: use `install.ps1` from an Anaconda Prompt / PowerShell. Works on any Windows laptop, no WSL required, but training is CPU-speed.
+- [Miniconda](https://docs.anaconda.com/miniconda/) and git, on whichever OS/shell you install into.
+- A gamepad per group (recommended; Logitech F310 or Xbox-type) or the keyboard. For a gamepad plugged into Windows but used inside WSL2, attach it with [usbipd-win](https://github.com/dorssel/usbipd-win) first, or just use the keyboard.
 - A free [Weights & Biases](https://wandb.ai) account per student (recommended; the TP also works offline with the observer logs)
 
-It does **not** work on Google Colab, a remote JupyterHub or over SSH: there is no screen for the simulator and your keyboard is not the server's. A remote desktop (NoMachine, VNC, X2Go) into a GPU machine does work.
+**On CPU or MPS, training is slower than on the GPU lab machines the schedule was timed against** — Parts 3-5 may need more than the suggested duration to show the same learning curves. That's expected, not a bug: note your device (`cuda` / `mps` / `cpu`, and GPU model if any) in `answers.md`, since it matters for comparing results in Part 6.
+
+It does **not** work on Google Colab, a remote JupyterHub or over plain SSH: there is no screen for the simulator and your keyboard is not the server's. A remote desktop (NoMachine, VNC, X2Go) into a GPU machine does work, and so does WSL2 (which behaves like a local desktop session via WSLg).
 
 ## Install (once per machine)
 
 ```bash
 git clone https://github.com/<you>/tp-hil-serl.git
 cd tp-hil-serl
-bash install.sh          # conda env "tp-hil" with LeRobot 0.6.1 + HIL-SERL extras
+bash install.sh          # Linux, macOS, or Windows-via-WSL2: conda env "tp-hil" with LeRobot 0.6.1 + HIL-SERL extras
 conda activate tp-hil
 python prefetch.py       # downloads the 30 reference demos + vision encoder
-python check_setup.py    # every line should be PASS
+python check_setup.py    # every line should be PASS or WARN, no FAIL
 ```
+
+On native Windows (no WSL2), use `install.ps1` instead of `install.sh` from an Anaconda Prompt / PowerShell; `prefetch.py` and `check_setup.py` are the same on every OS.
 
 ## Quick start
 
-In a terminal **opened inside the desktop session**, from the repository root:
+In a terminal **opened inside the desktop session**, from the repository root (native Windows: use an Anaconda Prompt / PowerShell and `$env:TP_GROUP="group07"` instead of `export`):
 
 ```bash
 conda activate tp-hil
@@ -69,9 +76,10 @@ tp-hil-serl/
 │   ├── log_progress.py    observer log (first success, successes/10, interventions)
 │   ├── plot_results.py    Parts 4-6: learning curves, group and class comparison
 │   └── common.py          shared paths and config helpers
-├── install.sh             creates the conda env
+├── install.sh             creates the conda env (Linux, macOS, Windows-via-WSL2)
+├── install.ps1            creates the conda env on native Windows (CPU-only)
 ├── prefetch.py            caches the dataset and encoder from the Hugging Face Hub
-├── check_setup.py         machine check: GPU, display, rendering, controller, cache, W&B
+├── check_setup.py         machine check: device (CUDA/MPS/CPU), display, rendering, controller, cache, W&B
 └── instructor/            preparation checklist, pitfalls, grading, answer key
 ```
 
@@ -92,14 +100,17 @@ tp-hil-serl/
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `GLFWError: X11: The DISPLAY environment variable is missing`, then `FatalError: an OpenGL platform library has not been loaded` | Running without a screen (SSH, Colab, JupyterHub) | Run the scripts from a terminal inside the desktop session |
-| `CUDA available: False`, torch version ends in `+cpu` | CPU-only PyTorch, or no GPU/driver | Check `nvidia-smi`; reinstall a CUDA build of PyTorch from [pytorch.org](https://pytorch.org/get-started/locally/) |
-| Keys do nothing | Wayland session | Log out, pick "Ubuntu on Xorg" (or your distro's X11 session) |
+| `GLFWError: X11: The DISPLAY environment variable is missing`, then `FatalError: an OpenGL platform library has not been loaded` | (Linux) Running without a screen (SSH, Colab, JupyterHub) | Run the scripts from a terminal inside the desktop session, or a remote-desktop session (NoMachine/VNC/X2Go) |
+| `check_setup.py` reports GPU as CPU, training feels slow | No CUDA/MPS device found, or (Linux) CPU-only PyTorch | Expected on CPU-only hardware. If you have an NVIDIA GPU: check `nvidia-smi`, reinstall a CUDA build of PyTorch from [pytorch.org](https://pytorch.org/get-started/locally/) |
+| Keys do nothing (Linux) | Wayland session | Log out, pick "Ubuntu on Xorg" (or your distro's X11 session) |
+| Keys do nothing (macOS) | Terminal app not granted keyboard access | System Settings > Privacy & Security > Accessibility / Input Monitoring, enable your terminal app |
+| Simulator window doesn't appear (WSL2) | No WSLg / X server | Use Windows 11 (WSLg is built in), or install an X server (e.g. VcXsrv) on Windows and export `DISPLAY` in WSL |
+| Gamepad not detected in WSL2 | USB devices aren't passed through to WSL2 by default | Attach it with [usbipd-win](https://github.com/dorssel/usbipd-win), or use the keyboard |
 | Gamepad buttons do the wrong thing | Unknown controller model | Add a mapping to gym-hil's `controller_config.json` ([instructions](https://github.com/huggingface/gym-hil#controller-configuration)) |
-| Actor cannot connect / "address already in use" | A previous learner still runs on port 50051 | Ctrl+C in its terminal, or `pkill -f lerobot.rl` |
-| Learner takes minutes to start | Torch compilation on first run | Wait, or set `"use_torch_compile": false` in `configs/train_config.json` |
+| Actor cannot connect / "address already in use" | A previous learner still runs on port 50051 | Ctrl+C in its terminal, or `pkill -f lerobot.rl` (Windows: `taskkill` on the python process) |
+| Learner takes minutes to start | Torch compilation on first run (CUDA only; disabled automatically on MPS/CPU) | Wait, or set `"algorithm.use_torch_compile": false` in your run's config |
 | W&B plots empty | Metric names differ in your LeRobot version | `python scripts/plot_results.py --list-metrics`, then `--reward-key` / `--intervention-key` |
-| `Set your group name first` | `TP_GROUP` not set in this terminal | `export TP_GROUP=group07` |
+| `Set your group name first` | `TP_GROUP` not set in this terminal | `export TP_GROUP=group07` (PowerShell: `$env:TP_GROUP="group07"`) |
 
 ## References
 

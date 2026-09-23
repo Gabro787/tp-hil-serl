@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Install the TP environment on a Linux lab machine (NVIDIA GPU + desktop session).
+# Install the TP environment: Linux (NVIDIA GPU lab machine, or CPU), macOS (Apple Silicon
+# MPS or CPU), or Windows via WSL2 (NVIDIA GPU passthrough -- run this *inside* WSL2, with a
+# recent NVIDIA driver installed on the Windows side, not inside WSL). For native Windows
+# without WSL, use install.ps1 instead (CPU-only).
 # Usage:  bash install.sh            (creates the conda env "tp-hil")
 #         ENV_NAME=myenv bash install.sh
 set -euo pipefail
