@@ -1,0 +1,13 @@
+# Everything produced during the TP
+runs/
+outputs/
+wandb/
+
+# LeRobot source checkout made by install.sh when PyPI install fails
+.lerobot_src/
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
