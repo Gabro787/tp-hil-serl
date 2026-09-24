@@ -176,7 +176,8 @@ def viewer_python() -> str:
 
 
 def run_module(module: str, cfg_path: Path):
-    cmd = [viewer_python(), "-m", module, "--config_path", str(cfg_path)]
+    """Run a LeRobot RL module ("gym_manipulator", "actor", ...) through scripts/lerobot_rl.py."""
+    cmd = [viewer_python(), str(REPO / "scripts" / "lerobot_rl.py"), module, "--config_path", str(cfg_path)]
     print("\n$ " + " ".join(cmd) + "\n")
     try:
         return subprocess.run(cmd, check=False).returncode

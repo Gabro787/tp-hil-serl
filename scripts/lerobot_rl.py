@@ -10,10 +10,15 @@ the normal LeRobot module unchanged. `train.py` prints the right command for you
 
 LeRobot also refuses to start a process whose output directory already exists, and the learner
 creates it before the actor starts, so the actor gets its own sibling directory (`<dir>_actor`).
+
+Two more fixes for teleoperation: LeRobot's INFO messages ("Episode ended after ... steps") are
+switched back on (an import silently sets logging to WARNING first), and a SUCCESS/FAILURE key
+pressed during the reset pause no longer ends the next episode on its first step.
 """
 
 import dataclasses
 import json
+import logging
 import runpy
 import sys
 
@@ -29,6 +34,17 @@ def patch_reset_config():
     for f in dataclasses.fields(ResetConfig):
         if f.name == name:
             f.type = list[float] | None
+
+
+def patch_input_controllers():
+    """Forget an episode-end key (Enter/Esc/Y/A/X) on reset instead of applying it to the next episode."""
+    from gym_hil.wrappers import intervention_utils as iu
+
+    for cls in (iu.KeyboardController, iu.GamepadController, iu.GamepadControllerHID):
+        def reset(self, _orig=cls.reset):
+            _orig(self)
+            self.episode_end_status = None
+        cls.reset = reset
 
 
 def actor_output_args(argv):
@@ -49,6 +65,8 @@ def main():
         sys.exit(f"usage: python scripts/lerobot_rl.py {{{'|'.join(MODULES)}}} --config_path <file>")
     module = MODULES[sys.argv[1]]
     patch_reset_config()
+    patch_input_controllers()
+    logging.getLogger().setLevel(logging.INFO)
     extra = actor_output_args(sys.argv[2:]) if sys.argv[1] == "actor" else []
     sys.argv = [module] + sys.argv[2:] + extra
     runpy.run_module(module, run_name="__main__", alter_sys=True)

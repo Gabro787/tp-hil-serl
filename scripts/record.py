@@ -73,7 +73,7 @@ def main():
         "dataset.replay_episode": None,
         "dataset.push_to_hub": False,
     }, f"{group}_record")
-    run_module("lerobot.rl.gym_manipulator", cfg)
+    run_module("gym_manipulator", cfg)
     summary(group)
 
 

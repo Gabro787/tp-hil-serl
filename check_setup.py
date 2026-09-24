@@ -116,7 +116,13 @@ def c_keyboard():
     from pynput import keyboard
     report("PASS", "Keyboard listener", "pynput loaded")
     if platform.system() == "Darwin":
-        if getattr(keyboard.Listener, "IS_TRUSTED", True):
+        # IS_TRUSTED is only filled in on a running listener (the class attribute is always False).
+        listener = keyboard.Listener()
+        listener.start()
+        listener.wait()
+        trusted = getattr(listener, "IS_TRUSTED", True)
+        listener.stop()
+        if trusted:
             report("PASS", "Input capture", "this terminal may capture the keyboard")
         else:
             report("WARN", "Input capture", "macOS is not letting this terminal capture the keyboard, so the "

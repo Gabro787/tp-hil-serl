@@ -18,7 +18,7 @@ def main():
     name = f"{args.group or 'anon'}_play"
     cfg = make_config(load_reference("env_config.json"),
                        {**control_changes(args.keyboard), "mode": None, "device": detect_device()}, name)
-    run_module("lerobot.rl.gym_manipulator", cfg)
+    run_module("gym_manipulator", cfg)
 
 
 if __name__ == "__main__":

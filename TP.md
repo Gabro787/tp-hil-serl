@@ -101,6 +101,8 @@ Using the keyboard instead of a gamepad? Add `--keyboard` to every `teleop.py`, 
 
 On the gamepad you intervene only while RB is held; on the keyboard Space toggles intervention on, and you press it **again** to hand control back.
 
+**Driving without a policy (`teleop.py`, `record.py`) uses the same takeover control.** The robot only follows your inputs while you are intervening. On the gamepad, hold RB the whole time you drive. On the keyboard, press Space at the start of **every** episode, because each reset turns intervention off again. The keyboard is read system-wide: Enter or Esc typed in any window, including your terminal, ends the current episode.
+
 > The simulator prints its own key help at startup, and it says *Backspace* ends an episode with failure and *ESC* exits. That text is wrong: **Esc = failure** (as in the table above), and Backspace does nothing.
 
 Key settings: control rate 10 Hz, episodes of at most 10 s (100 steps), two cameras (`front`, `wrist`) at 128×128, an 18-dimensional state vector, and a 3-D continuous action (dx, dy, dz) plus a discrete gripper command. The reference configs are in [`configs/`](configs/); the scripts never modify them, they write a copy for each run in `runs/configs/`.
@@ -125,7 +127,7 @@ It prints the observation and action spaces, runs 50 random steps, saves the two
 python scripts/teleop.py
 ```
 
-The operator attempts the task **5 times**, ending each attempt with *success* or *failure*. The observer fills in the *human trials* table in `answers.md`: time to success or failure, and what went wrong. Swap roles and repeat. Close the window (or Ctrl+C) to finish.
+The operator attempts the task **5 times**, ending each attempt with *success* or *failure*. The observer fills in the *human trials* table in `answers.md`: time to success or failure, and what went wrong. The terminal prints `Episode ended after N steps ...` for each attempt: the time is N ÷ 10 seconds (the time printed on that line is counted from the start of the session, not the episode, so ignore it). Swap roles and repeat. Close the window (or Ctrl+C) to finish.
 
 **Questions**
 
