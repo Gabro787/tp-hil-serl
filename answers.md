@@ -26,7 +26,7 @@ Replace every `...` with your answer. Insert figures from `runs/plots/` with `![
 | | 4 | | | |
 | | 5 | | | |
 
-**Q1.1** ...
+**Q1.1** ![caption](runs/plots/cameras.png)
 
 **Q1.2** ...
 
