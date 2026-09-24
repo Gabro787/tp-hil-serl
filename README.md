@@ -35,7 +35,7 @@ It does **not** work on Google Colab, a remote JupyterHub or over plain SSH: the
 ## Install (once per machine)
 
 ```bash
-git clone https://github.com/<you>/tp-hil-serl.git
+git clone https://github.com/Silviatulli/tp-hil-serl.git
 cd tp-hil-serl
 bash install.sh          # Linux, macOS, or Windows-via-WSL2: conda env "tp-hil" with LeRobot 0.6.1 + HIL-SERL extras
 conda activate tp-hil
@@ -44,6 +44,20 @@ python check_setup.py    # every line should be PASS or WARN, no FAIL
 ```
 
 On native Windows (no WSL2), use `install.ps1` instead of `install.sh` from an Anaconda Prompt / PowerShell; `prefetch.py` and `check_setup.py` are the same on every OS.
+
+Clone the course repository; don't fork it. A fork of a public repository is public, so your answers would be visible to everyone. You hand in through your own private repository instead (see [Hand-in on GitHub](TP.md#hand-in-on-github)).
+
+## Getting updates
+
+The course repository may be updated during the TP (fixes, changed commands). To get the latest version, from the repository root:
+
+```bash
+git remote add upstream https://github.com/Silviatulli/tp-hil-serl.git   # once
+git add -A && git commit -m "my work so far"                             # save your changes first (skip if nothing to commit)
+git pull --no-rebase upstream main                                         # merge the update into your copy
+```
+
+This works whether you cloned the course repository, forked it, or already pointed `origin` to your own repository for the hand-in. Your runs in `runs/` are never touched. No reinstall is needed unless the update says so.
 
 ## Quick start
 
