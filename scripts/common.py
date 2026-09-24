@@ -144,8 +144,26 @@ def train_changes(group: str, tag: str, keyboard: bool, experiment: str | None =
 
 
 # --------------------------------------------------------------------------- processes
+def viewer_python() -> str:
+    """Interpreter to use for anything that opens the MuJoCo viewer window.
+
+    On macOS the interactive viewer (`launch_passive`) refuses to run under plain `python`
+    and requires the `mjpython` launcher that ships with the mujoco package. Elsewhere the
+    current interpreter is fine.
+    """
+    if platform.system() != "Darwin":
+        return sys.executable
+    mjpython = Path(sys.executable).with_name("mjpython")
+    if mjpython.exists():
+        return str(mjpython)
+    print("WARNING: mjpython not found next to this interpreter. On macOS the simulator window "
+          "needs it; if the run fails with 'requires that the Python script be run under mjpython', "
+          "reinstall mujoco in this environment.")
+    return sys.executable
+
+
 def run_module(module: str, cfg_path: Path):
-    cmd = [sys.executable, "-m", module, "--config_path", str(cfg_path)]
+    cmd = [viewer_python(), "-m", module, "--config_path", str(cfg_path)]
     print("\n$ " + " ".join(cmd) + "\n")
     try:
         return subprocess.run(cmd, check=False).returncode

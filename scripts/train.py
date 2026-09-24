@@ -16,9 +16,10 @@ import argparse
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 from common import (EXPERIMENTS, LOGS, REPO, add_common_args, check_display, load_reference, make_config,
-                    port_in_use, require_group, train_changes)
+                    port_in_use, require_group, train_changes, viewer_python)
 
 DURATIONS = {"noHIL": 25, "HIL": 25, "exp": 20}
 
@@ -50,6 +51,8 @@ def main():
         print("\nWARNING: port 50051 is busy, a learner is probably still running. Stop it first "
               "(Ctrl+C in its terminal, or: pkill -f lerobot.rl).")
 
+    # macOS opens the MuJoCo viewer only under mjpython; the learner has no window, so plain python.
+    actor_py = "mjpython" if Path(viewer_python()).name == "mjpython" else "python"
     minutes = DURATIONS[args.run]
     hands = ("DO NOT intervene (except to end an episode where the robot is clearly stuck)."
              if args.run == "noHIL" else
@@ -65,7 +68,7 @@ Run '{tag}' is ready. Let it run for {minutes} minutes.
     python -m lerobot.rl.learner --config_path {rel}
 
   Terminal 2 (actor, opens the simulator window):
-    python -m lerobot.rl.actor --config_path {rel}
+    {actor_py} -m lerobot.rl.actor --config_path {rel}
 
   Terminal 3 (observer):
     python scripts/log_progress.py --run {args.run if args.run != 'exp' else 'exp' + args.exp}
@@ -83,7 +86,7 @@ Stop: Ctrl+C in the actor terminal, then in the learner terminal.
         if learner.poll() is not None:
             sys.exit(f"The learner stopped, see {log.name}")
         try:
-            subprocess.run([sys.executable, "-m", "lerobot.rl.actor", "--config_path", str(cfg)], check=False)
+            subprocess.run([viewer_python(), "-m", "lerobot.rl.actor", "--config_path", str(cfg)], check=False)
         except KeyboardInterrupt:
             pass
         finally:
