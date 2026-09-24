@@ -89,13 +89,12 @@ tp-hil-serl/
 | Action | Key |
 | --- | --- |
 | Move in x–y plane | Arrow keys |
-| Move up / down (z) | Right Shift / Left Shift |
-| Close gripper | Left Ctrl |
-| Open gripper | Right Ctrl |
+| Move up / down (z) | U / D (tap for one step, hold to keep moving) |
+| Grasp | Hold C (the gripper opens when you release it) |
 | **Take over from the policy** | **Space** (toggle) |
-| End episode: success | Enter |
+| End episode: success | V (next to C, so you can keep holding C) or Enter |
 | End episode: failure | Esc |
-| Re-record episode | R |
+| Re-record episode | X |
 
 ## Troubleshooting
 
@@ -106,6 +105,7 @@ tp-hil-serl/
 | Keys do nothing (Linux) | Wayland session | Log out, pick "Ubuntu on Xorg" (or your distro's X11 session) |
 | Keys do nothing (macOS) | Terminal app not granted keyboard access | System Settings > Privacy & Security > Accessibility / Input Monitoring, enable your terminal app |
 | Simulator window doesn't appear (WSL2) | No WSLg / X server | Use Windows 11 (WSLg is built in), or install an X server (e.g. VcXsrv) on Windows and export `DISPLAY` in WSL |
+| `objc[...]: Class AVF... is implemented in both ...cv2/.dylibs/libavdevice... and ...` at start-up (macOS) | OpenCV bundles its own copy of ffmpeg | Harmless, ignore it |
 | Actor cannot connect / "address already in use" | A previous learner still runs on port 50051 | Ctrl+C in its terminal, or `pkill -f lerobot_rl` (Windows: `taskkill` on the python process) |
 | Learner takes minutes to start | Torch compilation on first run (CUDA only; disabled automatically on MPS/CPU) | Wait, or set `"algorithm.use_torch_compile": false` in your run's config |
 | W&B plots empty | Metric names differ in your LeRobot version | `python scripts/plot_results.py --list-metrics`, then `--reward-key` / `--intervention-key` |
