@@ -1,18 +1,18 @@
 """Part 2: record your own demonstrations, then print a summary of what was recorded.
 
-    python scripts/record.py                    # 10 episodes with the gamepad
-    python scripts/record.py --episodes 5 --keyboard
+    python scripts/record.py                    # 10 episodes
+    python scripts/record.py --episodes 5
     python scripts/record.py --summary-only     # just inspect an existing recording
 
-Each episode: grasp and lift the cube, then press SUCCESS (Y / Enter).
-Messed up? RE-RECORD (X / R) or FAILURE (A / Esc).
+Each episode: press Space to take control, grasp and lift the cube, then press SUCCESS (Enter).
+Messed up? RE-RECORD (R) or FAILURE (Esc).
 The dataset is saved locally in runs/data/pick_cube_<group>/ (never pushed to the Hub).
 """
 
 import argparse
 import shutil
 
-from common import (add_common_args, check_display, control_changes, demos_repo, demos_root,
+from common import (add_common_args, check_display, demos_repo, demos_root,
                     detect_device, load_reference, make_config, require_group, run_module)
 
 
@@ -62,13 +62,13 @@ def main():
             raise SystemExit(f"{root} already exists. Use --overwrite to start again, or --summary-only to inspect it.")
         shutil.rmtree(root)
 
-    cfg = make_config(load_reference("env_config.json"), {
-        **control_changes(args.keyboard),
+    base = load_reference("env_config.json")
+    cfg = make_config(base, {
         "mode": "record",
         "device": detect_device(),
         "dataset.repo_id": demos_repo(group),
         "dataset.root": str(root),
-        "dataset.task": control_changes(args.keyboard)["env.task"],
+        "dataset.task": base["env"]["task"],
         "dataset.num_episodes_to_record": args.episodes,
         "dataset.replay_episode": None,
         "dataset.push_to_hub": False,

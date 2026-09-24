@@ -3,7 +3,6 @@
 **Group:** 
 **Students:** 
 **Date:** 
-**Controller used:** gamepad / keyboard
 **Device used (from `check_setup.py`):** cuda / mps / cpu — GPU model if any:
 
 Replace every `...` with your answer. Insert figures from `runs/plots/` with `![caption](runs/plots/<file>.png)`. Keep the report under 6 pages when exported to PDF.

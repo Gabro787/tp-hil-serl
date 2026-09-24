@@ -1,6 +1,6 @@
 # TP: Interactive Robot Learning with HIL-SERL
 
-A 4-hour lab on **human-in-the-loop reinforcement learning**. Students train a simulated Franka Panda arm to pick up a cube with SAC, first on its own, then while they coach it by taking over with a gamepad or keyboard, and measure how much their interventions speed up learning.
+A 4-hour lab on **human-in-the-loop reinforcement learning**. Students train a simulated Franka Panda arm to pick up a cube with SAC, first on its own, then while they coach it by taking over with the keyboard, and measure how much their interventions speed up learning.
 
 Built on [LeRobot](https://github.com/huggingface/lerobot)'s HIL-SERL implementation and the [`gym_hil`](https://github.com/huggingface/gym-hil) MuJoCo environment. No real robot needed.
 
@@ -18,7 +18,7 @@ Built on [LeRobot](https://github.com/huggingface/lerobot)'s HIL-SERL implementa
 
 ## Requirements
 
-Everything runs **on the machine the student is sitting at**: the simulator opens a 3D window and reads the local keyboard or gamepad. Linux, macOS and Windows are all supported; `check_setup.py` auto-detects the best available compute device (CUDA, Apple MPS, or CPU) and configures every run for it, so the same commands work everywhere.
+Everything runs **on the machine the student is sitting at**: the simulator opens a 3D window and reads the local keyboard. Linux, macOS and Windows are all supported; `check_setup.py` auto-detects the best available compute device (CUDA, Apple MPS, or CPU) and configures every run for it, so the same commands work everywhere.
 
 - **Linux**: any desktop session using **X11** (not Wayland: keyboard input is ignored under Wayland). An NVIDIA GPU (`nvidia-smi` works) gives the fastest training; without one, training falls back to CPU and is much slower but still works.
 - **macOS**: Apple Silicon uses the GPU via MPS automatically; Intel Macs fall back to CPU. The first time you teleoperate, macOS may ask you to grant your terminal app Accessibility / Input Monitoring permission (System Settings > Privacy & Security) so it can capture the keyboard.
@@ -26,7 +26,6 @@ Everything runs **on the machine the student is sitting at**: the simulator open
   - **WSL2 + NVIDIA GPU** (fastest, closest to a Linux lab machine): install a recent NVIDIA driver on the *Windows* side, `wsl --install` (Windows 11 includes WSLg, so the simulator window appears natively, no extra X server needed), then run everything from `install.sh` onward *inside* the WSL2 Ubuntu shell.
   - **Native Windows, CPU-only**: use `install.ps1` from an Anaconda Prompt / PowerShell. Works on any Windows laptop, no WSL required, but training is CPU-speed.
 - [Miniconda](https://docs.anaconda.com/miniconda/) and git, on whichever OS/shell you install into.
-- A gamepad per group (recommended; Logitech F310 or Xbox-type) or the keyboard. For a gamepad plugged into Windows but used inside WSL2, attach it with [usbipd-win](https://github.com/dorssel/usbipd-win) first, or just use the keyboard.
 - A free [Weights & Biases](https://wandb.ai) account per student (recommended; the TP also works offline with the observer logs)
 
 **On CPU or MPS, training is slower than on the GPU lab machines the schedule was timed against** — Parts 3-5 may need more than the suggested duration to show the same learning curves. That's expected, not a bug: note your device (`cuda` / `mps` / `cpu`, and GPU model if any) in `answers.md`, since it matters for comparing results in Part 6.
@@ -54,7 +53,7 @@ In a terminal **opened inside the desktop session**, from the repository root (n
 conda activate tp-hil
 export TP_GROUP=group07             # your group name, in every terminal
 python scripts/inspect_env.py       # Part 1.1
-python scripts/teleop.py            # Part 1.2 (add --keyboard if no gamepad)
+python scripts/teleop.py            # Part 1.2
 python scripts/record.py            # Part 2
 python scripts/train.py --run noHIL # Part 3: prints the learner/actor commands to run
 ```
@@ -81,22 +80,22 @@ tp-hil-serl/
 ├── install.sh             creates the conda env (Linux, macOS, Windows-via-WSL2)
 ├── install.ps1            creates the conda env on native Windows (CPU-only)
 ├── prefetch.py            caches the dataset and encoder from the Hugging Face Hub
-├── check_setup.py         machine check: device (CUDA/MPS/CPU), display, rendering, controller, cache, W&B
+├── check_setup.py         machine check: device (CUDA/MPS/CPU), display, rendering, keyboard, cache, W&B
 └── instructor/            preparation checklist, pitfalls, grading, answer key
 ```
 
 ## Controls
 
-| Action | Gamepad | Keyboard |
-| --- | --- | --- |
-| Move in x–y plane | Left stick | Arrow keys |
-| Move up / down (z) | Right stick, vertical | Right Shift / Left Shift |
-| Close gripper | LT | Left Ctrl |
-| Open gripper | RT | Right Ctrl |
-| **Take over from the policy** | **Hold RB** | **Space** (toggle) |
-| End episode: success | Y / Triangle | Enter |
-| End episode: failure | A / Cross | Esc |
-| Re-record episode | X / Square | R |
+| Action | Key |
+| --- | --- |
+| Move in x–y plane | Arrow keys |
+| Move up / down (z) | Right Shift / Left Shift |
+| Close gripper | Left Ctrl |
+| Open gripper | Right Ctrl |
+| **Take over from the policy** | **Space** (toggle) |
+| End episode: success | Enter |
+| End episode: failure | Esc |
+| Re-record episode | R |
 
 ## Troubleshooting
 
@@ -107,8 +106,6 @@ tp-hil-serl/
 | Keys do nothing (Linux) | Wayland session | Log out, pick "Ubuntu on Xorg" (or your distro's X11 session) |
 | Keys do nothing (macOS) | Terminal app not granted keyboard access | System Settings > Privacy & Security > Accessibility / Input Monitoring, enable your terminal app |
 | Simulator window doesn't appear (WSL2) | No WSLg / X server | Use Windows 11 (WSLg is built in), or install an X server (e.g. VcXsrv) on Windows and export `DISPLAY` in WSL |
-| Gamepad not detected in WSL2 | USB devices aren't passed through to WSL2 by default | Attach it with [usbipd-win](https://github.com/dorssel/usbipd-win), or use the keyboard |
-| Gamepad buttons do the wrong thing | Unknown controller model | Add a mapping to gym-hil's `controller_config.json` ([instructions](https://github.com/huggingface/gym-hil#controller-configuration)) |
 | Actor cannot connect / "address already in use" | A previous learner still runs on port 50051 | Ctrl+C in its terminal, or `pkill -f lerobot_rl` (Windows: `taskkill` on the python process) |
 | Learner takes minutes to start | Torch compilation on first run (CUDA only; disabled automatically on MPS/CPU) | Wait, or set `"algorithm.use_torch_compile": false` in your run's config |
 | W&B plots empty | Metric names differ in your LeRobot version | `python scripts/plot_results.py --list-metrics`, then `--reward-key` / `--intervention-key` |

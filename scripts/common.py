@@ -32,8 +32,7 @@ EXPERIMENTS = {
     "B": ("Exploration: temperature_init 0.01 -> 0.1", {"algorithm.temperature_init": 0.1}),
     "C": ("Demo source: your own 10 demos from Part 2", None),  # filled in per group, see train_changes()
     "D": ("Offline data: online_ratio 0.5 -> 1.0 (no demos in batches)", {"online_ratio": 1.0}),
-    "E": ("Interface: the other controller (keyboard <-> gamepad)", None),
-    "F": ("Weight sync: push weights every 50 s instead of 4 s",
+    "E": ("Weight sync: push weights every 50 s instead of 4 s",
           {"policy.actor_learner_config.policy_parameters_push_frequency": 50}),
 }
 
@@ -42,8 +41,6 @@ EXPERIMENTS = {
 def add_common_args(parser):
     parser.add_argument("--group", default=os.environ.get("TP_GROUP"),
                         help="Group name, e.g. group07 (default: $TP_GROUP)")
-    parser.add_argument("--keyboard", action="store_true",
-                        help="Use the keyboard instead of the gamepad")
     return parser
 
 
@@ -104,12 +101,6 @@ def torch_compile_ok(device: str) -> bool:
     return device == "cuda"
 
 
-def control_changes(keyboard: bool) -> dict:
-    if keyboard:
-        return {"env.task": "PandaPickCubeKeyboard-v0", "env.processor.control_mode": "keyboard"}
-    return {"env.task": "PandaPickCubeGamepad-v0", "env.processor.control_mode": "gamepad"}
-
-
 def demos_repo(group: str) -> str:
     return f"tp/pick_cube_{group}"
 
@@ -118,10 +109,9 @@ def demos_root(group: str) -> Path:
     return DATA / f"pick_cube_{group}"
 
 
-def train_changes(group: str, tag: str, keyboard: bool, experiment: str | None = None) -> dict:
+def train_changes(group: str, tag: str, experiment: str | None = None) -> dict:
     device = detect_device()
     changes = {
-        **control_changes(keyboard),
         "wandb.enable": True,
         "wandb.project": WANDB_PROJECT,
         "dataset.repo_id": REFERENCE_DEMOS,
@@ -149,8 +139,6 @@ def train_changes(group: str, tag: str, keyboard: bool, experiment: str | None =
         if not demos_root(group).exists():
             sys.exit(f"Experiment C needs your Part 2 demos in {demos_root(group)}: run scripts/record.py first.")
         changes.update({"dataset.repo_id": demos_repo(group), "dataset.root": str(demos_root(group))})
-    elif experiment == "E":
-        changes.update(control_changes(not keyboard))
     elif experiment:
         changes.update(EXPERIMENTS[experiment][1])
     return changes

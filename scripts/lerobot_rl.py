@@ -13,7 +13,9 @@ creates it before the actor starts, so the actor gets its own sibling directory 
 
 Two more fixes for teleoperation: LeRobot's INFO messages ("Episode ended after ... steps") are
 switched back on (an import silently sets logging to WARNING first), and a SUCCESS/FAILURE key
-pressed during the reset pause no longer ends the next episode on its first step.
+pressed during the reset pause no longer ends the next episode on its first step. The keyboard's
+re-record key (R) is wired up: gym_hil listens for a key that does not exist, and LeRobot never
+passes gym_hil's re-record flag on to the recording loop.
 """
 
 import dataclasses
@@ -46,6 +48,47 @@ def patch_input_controllers():
             self.episode_end_status = None
         cls.reset = reset
 
+    start, stop = iu.KeyboardController.start, iu.KeyboardController.stop
+
+    def start_with_rerecord(self):
+        from pynput import keyboard
+
+        start(self)
+
+        def on_press(key):
+            if getattr(key, "char", None) in ("r", "R"):
+                self.key_states["rerecord"] = True
+                self.episode_end_status = "rerecord_episode"
+
+        self.rerecord_listener = keyboard.Listener(on_press=on_press)
+        self.rerecord_listener.start()
+
+    def stop_with_rerecord(self):
+        stop(self)
+        if getattr(self, "rerecord_listener", None) is not None:
+            self.rerecord_listener.stop()
+
+    iu.KeyboardController.start = start_with_rerecord
+    iu.KeyboardController.stop = stop_with_rerecord
+
+
+def patch_rerecord_flag():
+    """Pass gym_hil's "rerecord_episode" flag on under the key the recording loop checks."""
+    from lerobot.processor import TransitionKey
+    from lerobot.processor.hil_processor import GymHILAdapterProcessorStep
+    from lerobot.teleoperators.utils import TeleopEvents
+
+    call = GymHILAdapterProcessorStep.__call__
+
+    def call_with_rerecord(self, transition):
+        transition = call(self, transition)
+        info = transition.get(TransitionKey.INFO, {})
+        if "rerecord_episode" in info:
+            info[TeleopEvents.RERECORD_EPISODE] = info["rerecord_episode"]
+        return transition
+
+    GymHILAdapterProcessorStep.__call__ = call_with_rerecord
+
 
 def actor_output_args(argv):
     """`--output_dir=<run dir>_actor` for the actor, unless the caller already set one."""
@@ -66,6 +109,7 @@ def main():
     module = MODULES[sys.argv[1]]
     patch_reset_config()
     patch_input_controllers()
+    patch_rerecord_flag()
     logging.getLogger().setLevel(logging.INFO)
     extra = actor_output_args(sys.argv[2:]) if sys.argv[1] == "actor" else []
     sys.argv = [module] + sys.argv[2:] + extra

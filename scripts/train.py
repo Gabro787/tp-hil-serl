@@ -2,7 +2,7 @@
 
     python scripts/train.py --run noHIL          # Part 3: RL without interventions
     python scripts/train.py --run HIL            # Part 4: RL with your interventions
-    python scripts/train.py --run exp --exp B    # Part 5: your assigned experiment (A-F)
+    python scripts/train.py --run exp --exp B    # Part 5: your assigned experiment (A-E)
     python scripts/train.py --list-experiments
 
 The script writes the run's config to runs/configs/<group>_<run>.json, then prints the two
@@ -39,11 +39,11 @@ def main():
     if not args.run:
         p.error("--run is required (noHIL, HIL or exp)")
     if args.run == "exp" and not args.exp:
-        p.error("--run exp needs --exp A..F (see --list-experiments)")
+        p.error("--run exp needs --exp A..E (see --list-experiments)")
 
     group = require_group(args)
     tag = f"{group}_{args.run}" if args.run != "exp" else f"{group}_exp{args.exp}"
-    changes = train_changes(group, tag, args.keyboard, args.exp if args.run == "exp" else None)
+    changes = train_changes(group, tag, args.exp if args.run == "exp" else None)
     cfg = make_config(load_reference("train_config.json"), changes, tag)
     rel = cfg.relative_to(REPO)
 
@@ -56,7 +56,7 @@ def main():
     minutes = DURATIONS[args.run]
     hands = ("DO NOT intervene (except to end an episode where the robot is clearly stuck)."
              if args.run == "noHIL" else
-             "Intervene following the protocol in TP.md (hold RB / toggle Space).")
+             "Intervene following the protocol in TP.md (Space toggles takeover).")
     if args.run == "exp" and args.exp == "A":
         hands = "Experiment A: take over for LONG periods, driving the robot to success each time it hesitates."
 

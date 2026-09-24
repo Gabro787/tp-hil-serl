@@ -125,28 +125,12 @@ def c_keyboard():
         if trusted:
             report("PASS", "Input capture", "this terminal may capture the keyboard")
         else:
-            report("WARN", "Input capture", "macOS is not letting this terminal capture the keyboard, so the "
+            report("FAIL", "Input capture", "macOS is not letting this terminal capture the keyboard, so the "
                    "keyboard controls will do nothing. Open System Settings > Privacy & Security > Accessibility "
-                   "(and Input Monitoring), enable your terminal app, then restart the terminal. "
-                   "Not needed if you use a gamepad.")
-
-
-def c_gamepad():
-    os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
-    import pygame
-    pygame.init()
-    pygame.joystick.init()
-    n = pygame.joystick.get_count()
-    if n == 0:
-        report("WARN", "Gamepad", "none detected (fine if this group uses the keyboard)")
-    else:
-        names = [pygame.joystick.Joystick(i).get_name() for i in range(n)]
-        report("PASS", "Gamepad", ", ".join(names))
-    pygame.quit()
+                   "(and Input Monitoring), enable your terminal app, then restart the terminal.")
 
 
 check("Keyboard listener", c_keyboard)
-check("Gamepad", c_gamepad)
 
 
 # 6. Files, cache, accounts, network --------------------------------------------

@@ -10,7 +10,7 @@ The lab uses LeRobot's HIL-SERL implementation (Human-in-the-Loop Sample-Efficie
 
 1. Explain what makes robot learning *interactive*, and place HIL-SERL among related methods (behavioural cloning, DAgger/HG-DAgger, TAMER, RLHF).
 2. Describe the actor–learner architecture and why an off-policy algorithm (SAC) can learn from demonstrations, its own rollouts and human corrections at the same time.
-3. Collect demonstrations and give corrective interventions with a keyboard or gamepad.
+3. Collect demonstrations and give corrective interventions with the keyboard.
 4. Run a controlled comparison (with vs. without human interventions) and read learning curves: episodic reward and intervention rate.
 5. Reflect on the cost of human effort and on what a good intervention strategy looks like.
 
@@ -58,7 +58,7 @@ Robot learning is *interactive* when a teacher responds to the robot's own behav
 
 ```mermaid
 flowchart LR
-    H[Human<br/>keyboard / gamepad] -->|takeover| A[Actor<br/>env + policy]
+    H[Human<br/>keyboard] -->|takeover| A[Actor<br/>env + policy]
     A -->|transitions| L[Learner<br/>SAC updates]
     L -->|new weights every few s| A
     D[(Offline demos)] --> L
@@ -78,30 +78,28 @@ Open a terminal **inside the desktop session** of the lab machine (not over SSH)
 cd tp-hil-serl
 conda activate tp-hil
 export TP_GROUP=group07        # <-- your group name; set it in every new terminal
-python check_setup.py          # every line should be PASS (WARN is fine for the gamepad if you use the keyboard)
+python check_setup.py          # no line should be FAIL
 wandb login                    # paste your W&B API key once
 ```
 
-Using the keyboard instead of a gamepad? Add `--keyboard` to every `teleop.py`, `record.py` and `train.py` command.
-
 `check_setup.py` auto-detects your compute device (NVIDIA CUDA, Apple MPS, or CPU) and every run is configured for it automatically — the commands below are the same on Linux, macOS and Windows. On MPS or CPU, training (Parts 3-5) is slower than the schedule below assumes; that's expected, not a mistake. Write down your device (`cuda` / `mps` / `cpu`, plus GPU model if any) at the top of `answers.md` — Part 6 compares runs across the whole class, and device is a confound you'll need to account for.
 
-**Controls.** The robot is driven in end-effector space: you move the gripper in x, y, z and open/close it.
+**Controls.** The robot is driven from the keyboard in end-effector space: you move the gripper in x, y, z and open/close it.
 
-| Action | Gamepad | Keyboard |
-| --- | --- | --- |
-| Move in x–y plane | Left stick | Arrow keys |
-| Move up / down (z) | Right stick, vertical | Right Shift / Left Shift |
-| Close gripper | LT | Left Ctrl |
-| Open gripper | RT | Right Ctrl |
-| **Take over from the policy** | **Hold RB** | **Space** (toggle on/off) |
-| End episode: success | Y / Triangle | Enter |
-| End episode: failure | A / Cross | Esc |
-| Re-record episode | X / Square | R |
+| Action | Key |
+| --- | --- |
+| Move in x–y plane | Arrow keys |
+| Move up / down (z) | Right Shift / Left Shift |
+| Close gripper | Left Ctrl |
+| Open gripper | Right Ctrl |
+| **Take over from the policy** | **Space** (toggle on/off) |
+| End episode: success | Enter |
+| End episode: failure | Esc |
+| Re-record episode | R |
 
-On the gamepad you intervene only while RB is held; on the keyboard Space toggles intervention on, and you press it **again** to hand control back.
+Space toggles intervention on, and you press it **again** to hand control back.
 
-**Driving without a policy (`teleop.py`, `record.py`) uses the same takeover control.** The robot only follows your inputs while you are intervening. On the gamepad, hold RB the whole time you drive. On the keyboard, press Space at the start of **every** episode, because each reset turns intervention off again. The keyboard is read system-wide: Enter or Esc typed in any window, including your terminal, ends the current episode.
+**Driving without a policy (`teleop.py`, `record.py`) uses the same takeover control.** The robot only follows your keys while you are intervening, so press Space at the start of **every** episode: each reset turns intervention off again. The keyboard is read system-wide: Enter, Esc or R typed in any window, including your terminal, ends the current episode.
 
 > The simulator prints its own key help at startup, and it says *Backspace* ends an episode with failure and *ESC* exits. That text is wrong: **Esc = failure** (as in the table above), and Backspace does nothing.
 
@@ -146,7 +144,7 @@ Goal: build your own small offline dataset. Parts 3 and 4 use the shared referen
 python scripts/record.py --episodes 10
 ```
 
-Each episode: grasp and lift the cube, then press **success** (Y / Enter). If you mess up, press **re-record** (X) or **failure** (A / Esc). A successful episode ends with reward 1; a failed or timed-out one with reward 0. Split the 10 episodes between the two group members. At the end the script prints one line per episode (length, final reward). Run `python scripts/record.py --summary-only` to see it again.
+Each episode: grasp and lift the cube, then press **success** (Enter). If you mess up, press **re-record** (R) or **failure** (Esc). A successful episode ends with reward 1; a failed or timed-out one with reward 0. Split the 10 episodes between the two group members. At the end the script prints one line per episode (length, final reward). Run `python scripts/record.py --summary-only` to see it again.
 
 **Questions**
 
@@ -235,8 +233,7 @@ Goal: change **one** factor, keep everything else identical to Part 4, and measu
 | B | Exploration | `algorithm.temperature_init`: 0.01 → 0.1 | Too much entropy makes interventions less effective |
 | C | Demo source | Your own 10 demos from Part 2 instead of the 30 reference demos | Fewer, noisier demos slow down learning |
 | D | Offline data | `online_ratio`: 0.5 → 1.0 (batches use only online data) | Demos matter most at the start |
-| E | Interface | The other controller (keyboard ↔ gamepad) | A worse interface costs more human time |
-| F | Weight sync | `policy_parameters_push_frequency`: 4 → 50 s | Stale weights reduce the benefit of each intervention |
+| E | Weight sync | `policy_parameters_push_frequency`: 4 → 50 s | Stale weights reduce the benefit of each intervention |
 
 **Write your hypothesis in `answers.md` first (Q5.1), then run for 20 minutes:**
 
