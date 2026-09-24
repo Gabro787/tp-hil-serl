@@ -49,7 +49,7 @@ def main():
 
     if port_in_use():
         print("\nWARNING: port 50051 is busy, a learner is probably still running. Stop it first "
-              "(Ctrl+C in its terminal, or: pkill -f lerobot.rl).")
+              "(Ctrl+C in its terminal, or: pkill -f lerobot_rl).")
 
     # macOS opens the MuJoCo viewer only under mjpython; the learner has no window, so plain python.
     actor_py = "mjpython" if Path(viewer_python()).name == "mjpython" else "python"
@@ -65,10 +65,10 @@ Run '{tag}' is ready. Let it run for {minutes} minutes.
 {hands}
 
   Terminal 1 (learner, start it first and give it ~20 s before starting the actor):
-    python -m lerobot.rl.learner --config_path {rel}
+    python scripts/lerobot_rl.py learner --config_path {rel}
 
   Terminal 2 (actor, opens the simulator window):
-    {actor_py} -m lerobot.rl.actor --config_path {rel}
+    {actor_py} scripts/lerobot_rl.py actor --config_path {rel}
 
   Terminal 3 (observer):
     python scripts/log_progress.py --run {args.run if args.run != 'exp' else 'exp' + args.exp}
@@ -79,14 +79,14 @@ Stop: Ctrl+C in the actor terminal, then in the learner terminal.
     if args.launch:
         check_display()
         log = open(LOGS / f"{tag}_learner.log", "w")
-        learner = subprocess.Popen([sys.executable, "-m", "lerobot.rl.learner", "--config_path", str(cfg)],
+        learner = subprocess.Popen([sys.executable, str(REPO / "scripts" / "lerobot_rl.py"), "learner", "--config_path", str(cfg)],
                                    stdout=log, stderr=subprocess.STDOUT)
         print(f"Learner started in the background (log: {log.name}). Waiting 20 s before starting the actor...")
         time.sleep(20)
         if learner.poll() is not None:
             sys.exit(f"The learner stopped, see {log.name}")
         try:
-            subprocess.run([viewer_python(), "-m", "lerobot.rl.actor", "--config_path", str(cfg)], check=False)
+            subprocess.run([viewer_python(), str(REPO / "scripts" / "lerobot_rl.py"), "actor", "--config_path", str(cfg)], check=False)
         except KeyboardInterrupt:
             pass
         finally:

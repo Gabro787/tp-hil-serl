@@ -93,10 +93,7 @@ elif system == "Linux":
         report("PASS", "Session type", session)
 else:
     report("PASS", "Display", f"{system}: renders through the native windowing system, no DISPLAY needed.")
-    if system == "Darwin":
-        report("WARN", "Input capture", "macOS may ask you to grant your terminal app Accessibility / Input "
-               "Monitoring permission the first time (System Settings > Privacy & Security) for the keyboard "
-               "controls to be captured.")
+
 
 
 # 4. Simulation rendering ------------------------------------------------------------
@@ -116,8 +113,16 @@ check("MuJoCo rendering", c_render)
 
 # 5. Input devices -----------------------------------------------------------------
 def c_keyboard():
-    from pynput import keyboard  # noqa: F401
+    from pynput import keyboard
     report("PASS", "Keyboard listener", "pynput loaded")
+    if platform.system() == "Darwin":
+        if getattr(keyboard.Listener, "IS_TRUSTED", True):
+            report("PASS", "Input capture", "this terminal may capture the keyboard")
+        else:
+            report("WARN", "Input capture", "macOS is not letting this terminal capture the keyboard, so the "
+                   "keyboard controls will do nothing. Open System Settings > Privacy & Security > Accessibility "
+                   "(and Input Monitoring), enable your terminal app, then restart the terminal. "
+                   "Not needed if you use a gamepad.")
 
 
 def c_gamepad():

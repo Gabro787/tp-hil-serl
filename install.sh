@@ -8,7 +8,7 @@
 set -euo pipefail
 
 ENV_NAME="${ENV_NAME:-tp-hil}"
-PYTHON_VERSION="${PYTHON_VERSION:-3.10}"
+PYTHON_VERSION="${PYTHON_VERSION:-3.12}"
 LEROBOT_VERSION="${LEROBOT_VERSION:-0.6.1}"   # pin the version you tested the TP with
 
 if ! command -v conda >/dev/null 2>&1; then
@@ -26,7 +26,7 @@ fi
 conda activate "$ENV_NAME"
 
 echo ">> ffmpeg (needed to encode dataset videos)"
-conda install -y -c conda-forge ffmpeg
+conda install -y -c conda-forge "ffmpeg>=6,<8"
 
 echo ">> LeRobot $LEROBOT_VERSION with the HIL-SERL extra"
 if ! pip install "lerobot[hilserl]==${LEROBOT_VERSION}"; then
@@ -37,7 +37,7 @@ if ! pip install "lerobot[hilserl]==${LEROBOT_VERSION}"; then
 fi
 
 echo ">> analysis and input-device tools"
-pip install pandas matplotlib wandb pynput pygame hidapi
+pip install pandas matplotlib "wandb>=0.24,<0.28" pynput pygame hidapi
 
 cat <<EOF
 

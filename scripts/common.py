@@ -84,6 +84,11 @@ def make_config(base: dict, changes: dict, name: str) -> Path:
     return path
 
 
+def wandb_logged_in() -> bool:
+    netrc = Path.home() / ".netrc"
+    return bool(os.environ.get("WANDB_API_KEY")) or (netrc.exists() and "api.wandb.ai" in netrc.read_text())
+
+
 def detect_device() -> str:
     """Best training/inference device on this machine: NVIDIA CUDA > Apple MPS > CPU."""
     import torch
@@ -127,6 +132,14 @@ def train_changes(group: str, tag: str, keyboard: bool, experiment: str | None =
         "output_dir": str(OUTPUTS / tag),
         "job_name": tag,
     }
+    # LeRobot passes wandb.mode explicitly, which overrides the WANDB_MODE variable, so forward it.
+    wandb_mode = os.environ.get("WANDB_MODE")
+    if wandb_mode in ("online", "offline", "disabled"):
+        changes["wandb.mode"] = wandb_mode
+    elif not wandb_logged_in():
+        print("WARNING: you are not logged in to Weights & Biases, so the learner will stop at start-up. "
+              "Run `wandb login`, or work without it: export WANDB_MODE=offline (PowerShell: "
+              "$env:WANDB_MODE=\"offline\") and run this command again.")
     if device != "cuda":
         print(f"NOTE: no CUDA GPU detected, training on '{device}'. This will be much slower than "
               "the GPU lab machines: expect Parts 3-5 to need longer than the suggested duration to "

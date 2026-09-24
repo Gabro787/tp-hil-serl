@@ -8,7 +8,7 @@
 $ErrorActionPreference = "Stop"
 
 $EnvName = if ($env:ENV_NAME) { $env:ENV_NAME } else { "tp-hil" }
-$PythonVersion = if ($env:PYTHON_VERSION) { $env:PYTHON_VERSION } else { "3.10" }
+$PythonVersion = if ($env:PYTHON_VERSION) { $env:PYTHON_VERSION } else { "3.12" }
 $LeRobotVersion = if ($env:LEROBOT_VERSION) { $env:LEROBOT_VERSION } else { "0.6.1" }  # pin the version the TP was tested with
 
 if (-not (Get-Command conda -ErrorAction SilentlyContinue)) {
@@ -25,7 +25,7 @@ if ($envExists) {
 }
 
 Write-Host ">> ffmpeg (needed to encode dataset videos)"
-conda install -y -n $EnvName -c conda-forge ffmpeg
+conda install -y -n $EnvName -c conda-forge "ffmpeg>=6,<8"
 
 Write-Host ">> LeRobot $LeRobotVersion with the HIL-SERL extra"
 conda run -n $EnvName pip install "lerobot[hilserl]==$LeRobotVersion"
@@ -37,7 +37,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host ">> analysis and input-device tools"
-conda run -n $EnvName pip install pandas matplotlib wandb pynput pygame hidapi
+conda run -n $EnvName pip install pandas matplotlib "wandb>=0.24,<0.28" pynput pygame hidapi
 
 Write-Host ""
 Write-Host "Done. This is a CPU-only install (no CUDA on native Windows); training will be slower"

@@ -16,7 +16,7 @@ The lab uses LeRobot's HIL-SERL implementation (Human-in-the-Loop Sample-Efficie
 
 **Prerequisites.** Basic Python and Linux shell; notions of RL (MDP, reward, policy, Q-function).
 
-**Deliverable.** Fill in [`answers.md`](answers.md) with your answers, tables and figures (from `runs/plots/`), export it to PDF, and hand it in one week after the session.
+**Deliverable.** Fill in [`answers.md`](answers.md) with your answers, tables and figures (from `runs/plots/`), export it to PDF, and hand it in one week after the session. You hand in through your own GitHub repository: see [Hand-in on GitHub](#hand-in-on-github).
 
 ---
 
@@ -97,11 +97,13 @@ Using the keyboard instead of a gamepad? Add `--keyboard` to every `teleop.py`, 
 | **Take over from the policy** | **Hold RB** | **Space** (toggle on/off) |
 | End episode: success | Y / Triangle | Enter |
 | End episode: failure | A / Cross | Esc |
-| Re-record episode | X / Square | — |
+| Re-record episode | X / Square | R |
 
 On the gamepad you intervene only while RB is held; on the keyboard Space toggles intervention on, and you press it **again** to hand control back.
 
-Key settings: control rate 10 Hz, episodes of at most 15 s (150 steps), two cameras (`front`, `wrist`) at 128×128, an 18-dimensional state vector, and a 3-D continuous action (dx, dy, dz) plus a discrete gripper command. The reference configs are in [`configs/`](configs/); the scripts never modify them, they write a copy for each run in `runs/configs/`.
+> The simulator prints its own key help at startup, and it says *Backspace* ends an episode with failure and *ESC* exits. That text is wrong: **Esc = failure** (as in the table above), and Backspace does nothing.
+
+Key settings: control rate 10 Hz, episodes of at most 10 s (100 steps), two cameras (`front`, `wrist`) at 128×128, an 18-dimensional state vector, and a 3-D continuous action (dx, dy, dz) plus a discrete gripper command. The reference configs are in [`configs/`](configs/); the scripts never modify them, they write a copy for each run in `runs/configs/`.
 
 ---
 
@@ -127,7 +129,7 @@ The operator attempts the task **5 times**, ending each attempt with *success* o
 
 **Questions**
 
-- **Q1.1** Describe the observation and action spaces. What do you think the 18 values of `observation.state` contain? (Hint: the normalisation ranges printed by `inspect_env.py`.)
+- **Q1.1** Describe the observation and action spaces. What do you think the 18 values of `observation.state` contain? (Hint: the normalisation ranges printed by `inspect_env.py`.) The script prints two action spaces: the raw simulator's, and the one the agent actually sees after the TP's wrappers (4 values: dx, dy, dz and a gripper command). Describe the second, and say what you think the difference is.
 - **Q1.2** The agent acts in end-effector space (dx, dy, dz), not in joint space. Why is this a big simplification for RL? What does the robot need to do internally to execute such an action?
 - **Q1.3** When does the environment give a reward, and how much? Is the reward sparse or dense? What problem does that create for an RL agent exploring at random?
 - **Q1.4** Report your success rate and mean time to success as human operators. Which phase of the task is hardest (approach, alignment, grasp, lift)?
@@ -168,8 +170,8 @@ This writes `runs/configs/<group>_noHIL.json` and prints three commands. Compare
 
 | Terminal | Command | Who |
 | --- | --- | --- |
-| 1 | the `lerobot.rl.learner` command printed above (start it **first**) | — |
-| 2 | the `lerobot.rl.actor` command (opens the sim window) | operator |
+| 1 | the `scripts/lerobot_rl.py learner` command printed above (start it **first**) | — |
+| 2 | the `scripts/lerobot_rl.py actor` command (opens the sim window; on macOS it is run with `mjpython`) | operator |
 | 3 | `python scripts/log_progress.py --run noHIL` | observer |
 
 **3.3 Let it run for 25 minutes. Do not touch the controls**, except to end an episode if the robot is clearly stuck. In terminal 3 the observer types `f` at the first success, and `s <n>` every 5 minutes with the number of successes among the last 10 episodes. Then stop the actor (Ctrl+C), then the learner.
@@ -180,7 +182,7 @@ This writes `runs/configs/<group>_noHIL.json` and prints three commands. Compare
 - **Q3.2** `utd_ratio = 2` is the update-to-data ratio. What does it mean, and why do sample-efficient methods push it above 1?
 - **Q3.3** The learner pushes new weights to the actor every few seconds. What is the effect of a long delay on the data the actor collects? Is SAC robust to this, and why?
 - **Q3.4** The vision encoder (a pretrained ResNet-10) is frozen. Give one advantage and one drawback.
-- **Q3.5** The discount is 0.97 and an episode lasts up to 150 steps. How much is a reward received 100 steps in the future worth today? What does that imply for a sparse, end-of-task reward?
+- **Q3.5** The discount is 0.97 and an episode lasts up to 100 steps (10 s). How much is a reward received at the very end of an episode, 100 steps in the future, worth at the start? What does that imply for a sparse, end-of-task reward?
 
 ---
 
@@ -271,8 +273,32 @@ This computes, for every run in the class, the time until the rolling-mean rewar
 
 ---
 
+## Hand-in on GitHub
+
+You hand in your work in **your own GitHub repository**, so the instructor can read your report and your run files. Do this at the end of the session, or at home before the deadline.
+
+1. **Create your own repository** on GitHub (github.com > New repository), for example `tp-hil-serl-group07`. Make it **private**. Do not fork the course repository: a fork of a public repository cannot be private. Leave it empty (no README).
+2. **Add the instructor as a collaborator.** In your repository: *Settings > Collaborators > Add people*, then enter the GitHub username **`Silviatulli`**. Without this the instructor cannot open a private repository and your work cannot be graded.
+3. **Push your work** from the course folder. `runs/` is ignored by git, so add the parts to hand in with `-f`:
+
+   ```bash
+   git remote set-url origin https://github.com/<your-username>/<your-repo>.git   # first time only
+   git add answers.md
+   git add -f runs/plots runs/logs runs/configs
+   git commit -m "TP HIL-SERL: group07 report"
+   git push -u origin main
+   ```
+
+   (If you cloned the course repository, `origin` still points to it, hence the `set-url` line. If you get a permission error, you are still pushing to the course repository.)
+4. **Register your repository in the class spreadsheet:** [open the spreadsheet](https://docs.google.com/spreadsheets/d/1z7GuBLEifa7PDZplGhnKOQXfGCPMJKUpL1sx0CHchBA/edit?usp=sharing) and add **one row per student** with your **full name**, your **GitHub username** and the **link to your repository**.
+
+Check before you leave: open the repository link in a private browser window. You should be asked to sign in (it is private), and when signed in as yourself you should see `answers.md` and `runs/plots/`.
+
+---
+
 ## Wrap-up
 
-- [ ] No learner or actor left running (`pkill -f lerobot.rl` if unsure).
+- [ ] No learner or actor left running (`pkill -f lerobot_rl` if unsure).
 - [ ] `answers.md` filled in, or notes to finish at home.
-- [ ] Copy `answers.md` and the `runs/plots/`, `runs/logs/` and `runs/configs/` folders to your USB key or cloud drive (`runs/` is not saved by git).
+- [ ] Push `answers.md` and the `runs/plots/`, `runs/logs/` and `runs/configs/` folders to your own GitHub repository ([Hand-in on GitHub](#hand-in-on-github)), and keep a second copy on a USB key or cloud drive.
+- [ ] `Silviatulli` added as a collaborator, and your name, GitHub username and repository link added to the class spreadsheet.

@@ -26,9 +26,15 @@ def show(obs, prefix=""):
 
 
 def main():
-    env = gym.make("gym_hil/PandaPickCubeBase-v0", image_obs=True)
-    print("Observation space:\n ", env.observation_space)
-    print("Action space:\n ", env.action_space)
+    raw = gym.make("gym_hil/PandaPickCubeBase-v0", image_obs=True)
+    print("Raw simulator action space (before the TP's wrappers):\n ", raw.action_space)
+    raw.close()
+
+    # The environment the agent actually trains in: end-effector control plus a gripper command.
+    env = gym_hil.make_env("gym_hil/PandaPickCubeBase-v0", use_viewer=False, use_gamepad=False,
+                           show_ui=False, image_obs=True)
+    print("\nObservation space:\n ", env.observation_space)
+    print("Action space seen by the agent:\n ", env.action_space)
 
     obs, info = env.reset(seed=0)
     print("\nObservation content:")

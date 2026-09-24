@@ -61,6 +61,8 @@ python scripts/train.py --run noHIL # Part 3: prints the learner/actor commands 
 
 Then follow [`TP.md`](TP.md). Everything you produce goes to `runs/` (ignored by git).
 
+**Hand-in:** students push their report to their own private GitHub repository, add the instructor (`Silviatulli`) as a collaborator, and register their name, GitHub username and repository link in the [class spreadsheet](https://docs.google.com/spreadsheets/d/1z7GuBLEifa7PDZplGhnKOQXfGCPMJKUpL1sx0CHchBA/edit?usp=sharing). Details in [`TP.md`](TP.md#hand-in-on-github).
+
 ## Repository layout
 
 ```
@@ -94,7 +96,7 @@ tp-hil-serl/
 | **Take over from the policy** | **Hold RB** | **Space** (toggle) |
 | End episode: success | Y / Triangle | Enter |
 | End episode: failure | A / Cross | Esc |
-| Re-record episode | X / Square | — |
+| Re-record episode | X / Square | R |
 
 ## Troubleshooting
 
@@ -107,9 +109,11 @@ tp-hil-serl/
 | Simulator window doesn't appear (WSL2) | No WSLg / X server | Use Windows 11 (WSLg is built in), or install an X server (e.g. VcXsrv) on Windows and export `DISPLAY` in WSL |
 | Gamepad not detected in WSL2 | USB devices aren't passed through to WSL2 by default | Attach it with [usbipd-win](https://github.com/dorssel/usbipd-win), or use the keyboard |
 | Gamepad buttons do the wrong thing | Unknown controller model | Add a mapping to gym-hil's `controller_config.json` ([instructions](https://github.com/huggingface/gym-hil#controller-configuration)) |
-| Actor cannot connect / "address already in use" | A previous learner still runs on port 50051 | Ctrl+C in its terminal, or `pkill -f lerobot.rl` (Windows: `taskkill` on the python process) |
+| Actor cannot connect / "address already in use" | A previous learner still runs on port 50051 | Ctrl+C in its terminal, or `pkill -f lerobot_rl` (Windows: `taskkill` on the python process) |
 | Learner takes minutes to start | Torch compilation on first run (CUDA only; disabled automatically on MPS/CPU) | Wait, or set `"algorithm.use_torch_compile": false` in your run's config |
 | W&B plots empty | Metric names differ in your LeRobot version | `python scripts/plot_results.py --list-metrics`, then `--reward-key` / `--intervention-key` |
+| Learner stops at start-up with `No API key configured` | Not logged in to Weights & Biases | `wandb login`, or work without it: `export WANDB_MODE=offline` (PowerShell: `$env:WANDB_MODE="offline"`), run `train.py` again, and use `plot_results.py --offline` |
+| Learner stops with `typing.Any cannot be used with isinstance()` | Started with `python -m lerobot.rl.learner` instead of the launcher | Use the command printed by `train.py` (`python scripts/lerobot_rl.py learner ...`) |
 | `Set your group name first` | `TP_GROUP` not set in this terminal | `export TP_GROUP=group07` (PowerShell: `$env:TP_GROUP="group07"`) |
 
 ## References
