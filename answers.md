@@ -1,8 +1,8 @@
 # TP HIL-SERL: report
 
-**Group:** 
-**Students:** 
-**Date:** 
+**Group:** NathGab 
+**Students:** Gabriel Medenou & Nathanael 
+**Date:** 24/09/2026
 **Device used (from `check_setup.py`):** cuda / mps / cpu — GPU model if any:
 
 Replace every `...` with your answer. Insert figures from `runs/plots/` with `![caption](runs/plots/<file>.png)`. Keep the report under 6 pages when exported to PDF.
