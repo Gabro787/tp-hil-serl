@@ -31,7 +31,9 @@ The observation space contains two RGB camera images (front and wrist), each of 
 
 The raw simulator has a 7-dimensional action space in \([-1,1]\). After the TP wrappers, the agent only sees a 4-dimensional action space: \([dx,dy,dz,\text{gripper}]\). The first three values command Cartesian displacements of the end-effector, while the last controls the gripper. The wrapper therefore simplifies the original control space by hiding some low-level action dimensions from the RL agent.
 
-**Q1.2** ...
+**Q1.2** Acting in end-effector space makes the RL problem easier because the agent only has to control the displacement of the gripper in x,y and z, instead of controlling all the robot joints separately. This reduces the size of the action space and makes the actions easier to relate to the task.
+
+Internally, the robot still has to convert these Cartesian commands into joint movements. This is done by the robot controller, using the robot kinematics, for example with inverse kinematics or the Jacobian, to determine how the joints should move.
 
 **Q1.3** ...
 
