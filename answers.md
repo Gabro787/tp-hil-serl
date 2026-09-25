@@ -27,6 +27,9 @@ Replace every `...` with your answer. Insert figures from `runs/plots/` with `![
 | | 5 | | | |
 
 **Q1.1** ![caption](runs/plots/cameras.png)
+The observation space contains two RGB camera images (front and wrist), each of size \(128 \times 128 \times 3\), and an 18-dimensional state vector. From the normalisation ranges, the first 7 values are likely the robot joint positions, the next 7 the joint velocities, the 15th value the gripper state, and the last 3 values the Cartesian position \((x,y,z)\) of the end-effector.
+
+The raw simulator has a 7-dimensional action space in \([-1,1]\). After the TP wrappers, the agent only sees a 4-dimensional action space: \([dx,dy,dz,\text{gripper}]\). The first three values command Cartesian displacements of the end-effector, while the last controls the gripper. The wrapper therefore simplifies the original control space by hiding some low-level action dimensions from the RL agent.
 
 **Q1.2** ...
 
