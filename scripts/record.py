@@ -4,14 +4,15 @@
     python scripts/record.py --episodes 5
     python scripts/record.py --summary-only     # just inspect an existing recording
 
-Each episode: press Space to take control, grasp and lift the cube, then press SUCCESS (Enter).
-Messed up? RE-RECORD (R) or FAILURE (Esc).
+Each episode: press Space to take control, grasp and lift the cube (hold C), then press SUCCESS (V or Enter).
+Messed up? RE-RECORD (X) or FAILURE (Esc).
 The dataset is saved locally in runs/data/pick_cube_<group>/ (never pushed to the Hub).
 """
 
 import argparse
 import shutil
 
+from teleop import TELEOP_EPISODE_S
 from common import (add_common_args, check_display, demos_repo, demos_root,
                     detect_device, load_reference, make_config, require_group, run_module)
 
@@ -72,6 +73,7 @@ def main():
         "dataset.num_episodes_to_record": args.episodes,
         "dataset.replay_episode": None,
         "dataset.push_to_hub": False,
+        "env.processor.reset.control_time_s": TELEOP_EPISODE_S,
     }, f"{group}_record")
     run_module("gym_manipulator", cfg)
     summary(group)
