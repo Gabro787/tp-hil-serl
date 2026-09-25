@@ -27,15 +27,17 @@ Replace every `...` with your answer. Insert figures from `runs/plots/` with `![
 | | 5 | | | |
 
 **Q1.1** ![caption](runs/plots/cameras.png)
-The observation space contains two RGB camera images (front and wrist), each of size 128x128x3, and an 18-dimensional state vector. From the normalisation ranges, the first 7 values are likely the robot joint positions, the next 7 the joint velocities, the 15th value the gripper state, and the last 3 values the Cartesian position \(x,y,z)\ of the end-effector.
+The observation space contains two RGB camera images (front and wrist), each of size 128x128x3, and an 18-dimensional state vector. From the normalisation ranges, the first 7 values are likely the robot joint positions, the next 7 the joint velocities, the 15th value the gripper state, and the last 3 values the Cartesian position (x,y,z) of the end-effector.
 
-The raw simulator has a 7-dimensional action space in \([-1,1]\). After the TP wrappers, the agent only sees a 4-dimensional action space: \([dx,dy,dz,\text{gripper}]\). The first three values command Cartesian displacements of the end-effector, while the last controls the gripper. The wrapper therefore simplifies the original control space by hiding some low-level action dimensions from the RL agent.
+The raw simulator has a 7-dimensional action space in [-1,1]. After the TP wrappers, the agent only sees a 4-dimensional action space: [dx,dy,dz,gripper]. The first three values command Cartesian displacements of the end-effector, while the last controls the gripper. The wrapper therefore simplifies the original control space by hiding some low-level action dimensions from the RL agent.
 
 **Q1.2** Acting in end-effector space makes the RL problem easier because the agent only has to control the displacement of the gripper in x,y and z, instead of controlling all the robot joints separately. This reduces the size of the action space and makes the actions easier to relate to the task.
 
 Internally, the robot still has to convert these Cartesian commands into joint movements. This is done by the robot controller, using the robot kinematics, for example with inverse kinematics or the Jacobian, to determine how the joints should move.
 
-**Q1.3** ...
+**Q1.3** The environment gives a reward of 1 when the task is successfully completed, and 0 otherwise. The reward is therefore sparse, since the agent receives no intermediate reward while approaching, aligning with, or grasping the cube.
+
+This makes random exploration difficult because a random policy is very unlikely to complete the full sequence of actions required for success. As a result, the agent may experience many episodes with only zero rewards and get very little information about which actions are useful.
 
 **Q1.4** Success rate: ... · Mean time to success: ... s · Hardest phase: ...
 
