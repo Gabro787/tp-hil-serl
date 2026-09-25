@@ -15,11 +15,11 @@ Replace every `...` with your answer. Insert figures from `runs/plots/` with `![
 
 | Operator | Attempt | Success (y/n) | Time (s) | What went wrong |
 | --- | --- | --- | --- | --- |
-| | 1 | | | |
-| | 2 | | | |
-| | 3 | | | |
-| | 4 | | | |
-| | 5 | | | |
+| Gabriel | 1 | n | 29.9 | Time out before completing the task |
+| Gabriel | 2 | n | 13.2 | Success was declared before the cube was lifted |
+| Gabriel | 3 | y | 24.2 | |
+| Gabriel | 4 | y | 7.6 | |
+| Gabriel | 5 | y | 3.4 | |
 | | 1 | | | |
 | | 2 | | | |
 | | 3 | | | |
